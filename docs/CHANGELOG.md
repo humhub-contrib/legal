@@ -1,6 +1,11 @@
 Changelog
 =========
 
+1.3.0  (Unreleased)
+--------------------------
+- Enh: Use controller config for not intercepted actions
+
+
 1.2.0  (Unreleased)
 --------------------------
 - Enh: Replace depreciated MarkdownField widget with new RichTextField widget

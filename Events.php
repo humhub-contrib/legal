@@ -7,6 +7,7 @@
 
 namespace humhub\modules\legal;
 
+use humhub\components\Controller;
 use humhub\modules\legal\models\Page;
 use humhub\modules\legal\models\RegistrationChecks;
 use humhub\modules\legal\widgets\CookieNote;
@@ -78,28 +79,13 @@ class Events
             return;
         }
 
+        // Allow actions which should not be intercepted
+        if ($event->action->controller instanceof Controller && $event->action->controller->isNotInterceptedAction()) {
+            return;
+        }
+
         /** @var Module $module */
         $module = Yii::$app->getModule('legal');
-
-        // Allow user delete action
-        if ($event->action->controller->module->id === 'user' && $event->action->controller->id === 'account' && $event->action->id === 'delete') {
-            return;
-        }
-        if ($event->action->controller->module->id === 'user' && $event->action->controller->id === 'auth') {
-            return;
-        }
-        if ($event->action->controller->module->id === 'mail' && $event->action->controller->id === 'mail') {
-            return;
-        }
-        if ($event->action->controller->id === 'poll') {
-            return;
-        }
-        if ($event->action->controller->module->id === 'rest') {
-            return;
-        }
-        if ($event->action->controller->module->id === 'twofa' && $event->action->controller->id === 'check') {
-            return;
-        }
 
         $registrationCheck = new RegistrationChecks(['user' => Yii::$app->user->getIdentity()]);
         if (!$registrationCheck->hasOpenCheck()) {
