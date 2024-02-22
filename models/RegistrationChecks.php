@@ -135,11 +135,28 @@ class RegistrationChecks extends Model
 
         /** @var Module $module */
         $module = Yii::$app->getModule('legal');
-        if ($module->showAgeCheck()) {
-            if ($this->user === null || empty($module->settings->user($this->user)->get(static::SETTING_KEY_AGE))) {
+
+        // Check if the user and their profile property are not null before accessing them
+        if ($module->showAgeCheck() && $this->user !== null && $this->user->profile !== null) {
+            // Calculate the user's age
+            $birthday = $this->user->profile->birthday;
+            $minimumAge = $module->getMinimumAge();
+            $currentYear = date('Y');
+            $userBirthYear = date('Y', strtotime($birthday));
+            $userAge = $currentYear - $userBirthYear;
+
+            // Check if the user's age meets the minimum age requirement
+            if ($userAge < $minimumAge) {
+                // Perform logout if the age check fails
+                Yii::$app->user->logout();
+                return false;
+            }
+
+            if (empty($module->settings->user($this->user)->get(static::SETTING_KEY_AGE))) {
                 return true;
             }
         }
+
         return false;
     }
 
