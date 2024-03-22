@@ -68,9 +68,14 @@ use yii\bootstrap\ActiveForm;
 
     <script <?= Html::nonce() ?>>
         showLanguage();
-        $("#pageLangSelector").select2().on("select2:select", function (e) {
-            showLanguage();
-        });
+        var select2Interval = setInterval(function() {
+            if(jQuery.fn.select2) {
+                clearInterval(select2Interval);
+                $("#pageLangSelector").select2().on("select2:select", function (e) {
+                    showLanguage();
+                });
+            }
+        }, 50 );
 
         function showLanguage() {
             curLang = $('#pageLangSelector').val();
