@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @link https://www.humhub.org/
  * @copyright Copyright (c) 2018 HumHub GmbH & Co. KG
@@ -7,7 +8,10 @@
 
 namespace humhub\modules\legal;
 
+use DateTime;
 use humhub\modules\admin\controllers\UserController;
+use humhub\modules\legal\validators\AgeValidator;
+use humhub\modules\user\models\Profile;
 use humhub\modules\comment\models\Comment;
 use humhub\modules\content\widgets\richtext\ProsemirrorRichText;
 use humhub\modules\legal\models\Page;
@@ -24,9 +28,9 @@ use yii\base\ActionEvent;
 use yii\helpers\Url;
 use yii\web\UserEvent;
 
-
 /**
- * @author luke
+ * Class Events
+ * @package humhub\modules\legal
  */
 class Events
 {
@@ -34,6 +38,11 @@ class Events
     const SESSION_KEY_LEGAL_CHECK = 'legalModuleChecked';
     const SESSION_KEY_LEGAL_AFTER_REGISTRATION = 'legalModuleAfterRegistration';
 
+    /**
+     * Handles the initialization of the footer menu.
+     *
+     * @param $event
+     */
     public static function onFooterMenuInit($event)
     {
         /** @var Module $module */
@@ -59,6 +68,11 @@ class Events
 
     }
 
+    /**
+     * Handles the initialization of layout addons.
+     *
+     * @param $event
+     */
     public static function onLayoutAddonInit($event)
     {
         /** @var Module $module */
@@ -73,6 +87,11 @@ class Events
 
     }
 
+    /**
+     * Handles the actions before a controller action.
+     *
+     * @param ActionEvent $event
+     */
     public static function onBeforeControllerAction(ActionEvent $event)
     {
         if (Yii::$app->user->isGuest) {
@@ -147,6 +166,11 @@ class Events
         }
     }
 
+    /**
+     * Check if the validation should be skipped.
+     *
+     * @return bool
+     */
     public static function skipVerifying(): bool
     {
         // Do not use on console request
@@ -168,6 +192,11 @@ class Events
         return false;
     }
 
+    /**
+     * Handles the initialization of the registration form.
+     *
+     * @param $event
+     */
     public static function onRegistrationFormInit($event)
     {
         if (static::skipVerifying()) {
@@ -187,6 +216,11 @@ class Events
         }
     }
 
+    /**
+     * Handles the rendering of the registration form.
+     *
+     * @param $event
+     */
     public static function onRegistrationFormRender($event)
     {
         if (static::skipVerifying()) {
@@ -231,6 +265,8 @@ class Events
     }
 
     /**
+     * Handles actions after user registration.
+     *
      * @param UserEvent $event
      * @throws \yii\base\Exception
      */
@@ -251,6 +287,11 @@ class Events
         $model->save();
     }
 
+    /**
+     * Handles actions after rich text is rendered.
+     *
+     * @param $event
+     */
     public static function onAfterRunRichText($event)
     {
         /* @var ProsemirrorRichText $richText */
@@ -262,6 +303,48 @@ class Events
 
         if ($richText->record instanceof Post || $richText->record instanceof Comment) {
             $event->result = Content::widget(['content' => $event->result, 'richtext' => false]);
+        }
+    }
+
+    /**
+     * Handles actions before validation.
+     *
+     * @param $event
+     */
+    public static function onBeforeValidate($event)
+    {
+        // Get the registration form
+        $registrationForm = $event->sender;
+
+        // Check if the user object exists
+        if ($registrationForm->user !== null) {
+            // Get the user model associated with the registration form
+            $user = $registrationForm->user;
+
+            // Log user information for debugging
+            Yii::info('User ID: ' . $user->id);
+
+            // Check for minimum age
+            $minimumAge = Yii::$app->getModule('legal')->getMinimumAge();
+            if ($minimumAge > 0) {
+                // Get the profile model associated with the user
+                $userProfile = Profile::find()->where(['user_id' => $user->id])->one();
+
+                if ($userProfile !== null) {
+                    // Get the birthday attribute from the profile
+                    $birthday = $userProfile->birthday;
+
+                    // Validate the user's age using AgeValidator
+                    $ageValidator = new AgeValidator();
+                    $ageValidator->validateAttribute($userProfile, 'birthday');
+                } else {
+                    // Handle the case where the profile is not found
+                    Yii::warning('Profile not found for user ID: ' . $user->id);
+                }
+            }
+        } else {
+            // Handle the case where the user object is null
+            Yii::warning('User object is null');
         }
     }
 }

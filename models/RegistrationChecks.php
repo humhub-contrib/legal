@@ -8,12 +8,13 @@
 
 namespace humhub\modules\legal\models;
 
+use Yii;
+use yii\base\Model;
 use humhub\libs\Html;
+use yii\base\Exception;
 use humhub\modules\legal\Module;
 use humhub\modules\user\models\User;
-use Yii;
-use yii\base\Exception;
-use yii\base\Model;
+use humhub\modules\legal\validators\AgeValidator;
 
 /* @var $this \humhub\modules\ui\view\components\View */
 
@@ -47,6 +48,10 @@ class RegistrationChecks extends Model
         $rules = [];
 
         if ($this->showAgeCheck()) {
+            $rules[] = [['ageCheck'], AgeValidator::class];
+            $rules[] = [['ageCheck'], 'required', 'requiredValue' => 1, 'message' => ''];
+        } else {
+            // If showAgeCheck is not enabled, remove the AgeValidator
             $rules[] = [['ageCheck'], 'required', 'requiredValue' => 1, 'message' => ''];
         }
 
