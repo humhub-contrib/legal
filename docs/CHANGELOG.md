@@ -1,5 +1,12 @@
 Changelog
 =========
+
+1.5.0 (Unreleased)
+-------------------------
+- Fix #75: Update module resources path
+
+1.4.2 (Unreleased)
+-------------------------
 - Fix #74: save datetime of last update of a page
 
 1.4.1 (November 28, 2023)
