@@ -37,6 +37,9 @@ foreach (Page::getPages() as $key => $title) {
     <?= $form->field($model, 'showAgeCheck')->checkbox(); ?>
     <?= $form->field($model, 'minimumAge')->textInput()->hint(\Yii::t('LegalModule.base', 'Please enter a number value.')); ?>
 
+    <?= $form->field($model, 'exportUserData')->checkbox(['disabled' => !$model->getModule()->isAllowedExportUserData()]) ?>
+    <?= $form->field($model, 'exportUserDays')->textInput(['disabled' => !$model->getModule()->isAllowedExportUserData()]) ?>
+
     <div class="form-group">
         <?= Html::submitButton(Yii::t('base', 'Save'), ['class' => 'btn btn-primary', 'data-ui-loader' => '']) ?>
     </div>
@@ -45,4 +48,3 @@ foreach (Page::getPages() as $key => $title) {
 
 </div>
 <?php $this->endContent() ?>
-

@@ -15,13 +15,14 @@ use yii\base\Model;
 
 class ConfigureForm extends Model
 {
-
     public $enabledPages;
     public $externalLinks;
     public $showPagesAfterRegistration;
     public $defaultLanguage;
     public $showAgeCheck;
     public $minimumAge;
+    public $exportUserData;
+    public $exportUserDays;
 
     /**
      * @inheritdoc
@@ -32,8 +33,9 @@ class ConfigureForm extends Model
             [['enabledPages'], 'in', 'range' => array_keys(Page::getPages())],
             [['externalLinks'], 'in', 'range' => ['icon', 'modal']],
             [['defaultLanguage'], 'in', 'range' => array_keys(Yii::$app->i18n->getAllowedLanguages())],
-            [['showPagesAfterRegistration', 'showAgeCheck'], 'boolean'],
-            ['minimumAge', 'integer', 'min' => 16, 'max' => 99]
+            [['showPagesAfterRegistration', 'showAgeCheck', 'exportUserData'], 'boolean'],
+            ['minimumAge', 'integer', 'min' => 16, 'max' => 99],
+            ['exportUserDays', 'integer', 'min' => 1],
         ];
     }
 
@@ -45,9 +47,11 @@ class ConfigureForm extends Model
         return [
             'enabledPages' => Yii::t('LegalModule.base', 'Enabled pages and features'),
             'showPagesAfterRegistration' => Yii::t('LegalModule.base', 'For new account creation, show pages in full screen just after profile creation'),
-            'defaultLanguage' => Yii::t('LegalModule.base', 'Default languge'),
+            'defaultLanguage' => Yii::t('LegalModule.base', 'Default language'),
             'showAgeCheck' => Yii::t('LegalModule.base', 'Show age verification {age}', ['age' => $this->minimumAge]),
             'minimumAge' => Yii::t('LegalModule.base', 'Minimum age'),
+            'exportUserData' => Yii::t('LegalModule.base', 'Enable user data export'),
+            'exportUserDays' => Yii::t('LegalModule.base', 'Number of days while a download package will be kept'),
         ];
     }
 
@@ -57,7 +61,12 @@ class ConfigureForm extends Model
     public function attributeHints()
     {
         return [
-            'defaultLanguage' => Yii::t('LegalModule.base', 'Will be used as default, if the legal texts are not available in the users language.')
+            'defaultLanguage' => Yii::t('LegalModule.base', 'Will be used as default, if the legal texts are not available in the users language.'),
+            'exportUserData' => $this->getModule()->isAllowedExportUserData()
+                ? ''
+                : '<span class="text-danger">' .
+                    Yii::t('LegalModule.base', 'To enable the user data export, please enable the REST API module.') .
+                  '</span>',
         ];
     }
 
@@ -69,7 +78,8 @@ class ConfigureForm extends Model
         $this->showPagesAfterRegistration = $this->getModule()->showPagesAfterRegistration();
         $this->showAgeCheck = $this->getModule()->showAgeCheck();
         $this->minimumAge = $this->getModule()->getMinimumAge();
-        return true;
+        $this->exportUserData = $this->getModule()->isEnabledExportUserData();
+        $this->exportUserDays = $this->getModule()->getExportUserDays();
     }
 
     /**
@@ -90,6 +100,10 @@ class ConfigureForm extends Model
             $settings->set('showPagesAfterRegistration', $this->showPagesAfterRegistration);
             $settings->set('showAgeCheck', $this->showAgeCheck);
             $settings->set('minimumAge', $this->minimumAge);
+            if ($this->getModule()->isAllowedExportUserData()) {
+                $settings->set('exportUserData', $this->exportUserData);
+                $settings->set('exportUserDays', $this->exportUserDays);
+            }
         } catch (Exception $e) {
             Yii::error($e->getMessage());
             return false;

@@ -16,23 +16,23 @@ use humhub\modules\legal\widgets\Content;
 use humhub\modules\legal\widgets\CookieNote;
 use humhub\modules\post\models\Post;
 use humhub\modules\rest\components\BaseController;
+use humhub\modules\ui\menu\MenuLink;
 use humhub\modules\user\models\forms\Registration;
 use humhub\modules\user\models\User;
+use humhub\modules\user\widgets\AccountMenu;
 use humhub\widgets\LayoutAddons;
 use Yii;
 use yii\base\ActionEvent;
 use yii\helpers\Url;
 use yii\web\UserEvent;
 
-
 /**
  * @author luke
  */
 class Events
 {
-
-    const SESSION_KEY_LEGAL_CHECK = 'legalModuleChecked';
-    const SESSION_KEY_LEGAL_AFTER_REGISTRATION = 'legalModuleAfterRegistration';
+    public const SESSION_KEY_LEGAL_CHECK = 'legalModuleChecked';
+    public const SESSION_KEY_LEGAL_AFTER_REGISTRATION = 'legalModuleAfterRegistration';
 
     public static function onFooterMenuInit($event)
     {
@@ -226,7 +226,7 @@ class Events
 
         $hForm->definition['elements']['RegistrationChecks'] = [
             'type' => 'form',
-            'elements' => $elements
+            'elements' => $elements,
         ];
     }
 
@@ -262,6 +262,24 @@ class Events
 
         if ($richText->record instanceof Post || $richText->record instanceof Comment) {
             $event->result = Content::widget(['content' => $event->result, 'richtext' => false]);
+        }
+    }
+
+    public static function onAccountMenuInit($event)
+    {
+        /* @var AccountMenu $menu */
+        $menu = $event->sender;
+
+        /* @var Module $module */
+        $module = Yii::$app->getModule('legal');
+
+        if ($module->isEnabledExportUserData()) {
+            $menu->addEntry(new MenuLink([
+                'icon' => 'fa-download',
+                'label' => Yii::t('LegalModule.base', 'Export your data'),
+                'url' => ['/legal/export'],
+                'sortOrder' => 1000,
+            ]));
         }
     }
 }
