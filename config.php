@@ -5,6 +5,7 @@ use humhub\components\Controller;
 use humhub\modules\content\widgets\richtext\ProsemirrorRichText;
 use humhub\modules\user\models\forms\Registration;
 use humhub\modules\user\widgets\AccountSettingsMenu;
+use humhub\modules\user\models\Profile;
 use humhub\widgets\FooterMenu;
 use humhub\widgets\LayoutAddons;
 
@@ -28,5 +29,6 @@ return [
         ['class' => ProsemirrorRichText::class, 'event' => ProsemirrorRichText::EVENT_AFTER_RUN, 'callback' => ['humhub\modules\legal\Events', 'onAfterRunRichText']],
         ['class' => AccountSettingsMenu::class, 'event' => AccountSettingsMenu::EVENT_INIT, 'callback' => ['humhub\modules\legal\Events', 'onAccountSettingsMenuInit']],
         ['class' => CronController::class, 'event' => CronController::EVENT_ON_DAILY_RUN, 'callback' => ['humhub\modules\legal\Events', 'onCronDailyRun']],
+        ['class' => Profile::class, 'event' => Profile::EVENT_BEFORE_VALIDATE, 'callback' => ['humhub\modules\legal\Events', 'onBeforeValidate']],
     ],
 ];

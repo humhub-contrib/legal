@@ -132,4 +132,48 @@ class LegalCest
         $I->amUser1(true);
         $I->dontSee($title, '.panel-heading');
     }
+
+    public function testAgeValidation(AcceptanceTester $I)
+    {
+        $I->wantTo('test age validation during registration and profile update');
+        $minimumAge = 18;
+
+        $I->amAdmin();
+        $I->amGoingTo('enable age verification');
+        $I->enableAgeVerification($minimumAge);
+
+        // Test registration with valid age
+        $I->amGoingTo('test registration with valid age');
+        $I->amOnRoute('/user/registration');
+        $I->fillField('Registration[username]', 'validAgeUser');
+        $I->fillField('Registration[email]', 'validage@example.com');
+        $I->fillField('Registration[password]', 'ValidPassword123');
+        $I->fillField('Registration[birthday]', date('Y-m-d', strtotime("-{$minimumAge} years -1 day")));
+        $I->click('Register');
+        $I->dontSee('You must be at least ' . $minimumAge . ' years old.');
+
+        // Test registration with invalid age
+        $I->amGoingTo('test registration with invalid age');
+        $I->amOnRoute('/user/registration');
+        $I->fillField('Registration[username]', 'invalidAgeUser');
+        $I->fillField('Registration[email]', 'invalidage@example.com');
+        $I->fillField('Registration[password]', 'InvalidPassword123');
+        $I->fillField('Registration[birthday]', date('Y-m-d', strtotime("-{$minimumAge} years +1 day")));
+        $I->click('Register');
+        $I->see('You must be at least ' . $minimumAge . ' years old.');
+
+        // Test profile update with invalid age
+        $I->amGoingTo('test profile update with invalid age');
+        $I->amUser1(true);
+        $I->amOnRoute('/user/account/edit');
+        $I->fillField('Profile[birthday]', date('Y-m-d', strtotime("-{$minimumAge} years +1 day")));
+        $I->click('Save');
+        $I->see('You must be at least ' . $minimumAge . ' years old.');
+
+        // Test profile update with valid age
+        $I->amGoingTo('test profile update with valid age');
+        $I->fillField('Profile[birthday]', date('Y-m-d', strtotime("-{$minimumAge} years -1 day")));
+        $I->click('Save');
+        $I->dontSee('You must be at least ' . $minimumAge . ' years old.');
+    }
 }

@@ -283,6 +283,17 @@ class Events
         }
     }
 
+    public static function onBeforeValidate($event)
+    {
+        $registrationForm = $event->sender;
+        $minimumAge = Yii::$app->getModule('legal')->getMinimumAge();
+
+        if ($minimumAge > 0) {
+            $ageValidator = new validators\AgeValidator(['minimumAge' => $minimumAge]);
+            $ageValidator->validateAttribute($registrationForm, 'birthday');
+        }
+    }
+
     /**
      * Callback on daily cron job run
      */

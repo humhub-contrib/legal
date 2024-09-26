@@ -4,6 +4,7 @@ Changelog
 1.4.3 (Unreleased)
 --------------------------
 - Fix #85: Fix downloading of large user export data file
+- Enh: Check User Birthday field
 
 1.4.2 (September 13, 2024)
 --------------------------
